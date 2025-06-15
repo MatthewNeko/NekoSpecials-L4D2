@@ -35,7 +35,7 @@ public Menu SpecialMenu(int client)
 		Format(line, sizeof(line), "玩家增加数量 [%d]", NCvar[CSpecial_PlayerAdd].IntValue);
 		N_ClientMenu[client].N_MenuSpecialMenu.AddItem("tgpadd", line);
 
-		Format(line, sizeof(line), "不算观察玩家 [%s]", NCvar[CSpecial_PlayerCountSpec].BoolValue ? "是" : "否");
+		Format(line, sizeof(line), "不算观察玩家 [%s]", NCvar[CSpecial_PlayerCountSpec].BoolValue ? "否" : "是");
 		N_ClientMenu[client].N_MenuSpecialMenu.AddItem("tgpcspec", line);
 
 		Format(line, sizeof(line), "不算死亡玩家 [%s]", NCvar[CSpecial_Num_NotCul_Death].BoolValue ? "是" : "否");
