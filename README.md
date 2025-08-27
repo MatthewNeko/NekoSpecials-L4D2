@@ -18,6 +18,8 @@ Specials plugin that can be customized in real time!<br>
 官网[点我跳转](https://himeneko.cn/nekospecials)<br>
 插件安装教程:<br>[[Neko多特插件 安装和详细介绍 7.0版本来袭 求生之路]](https://www.bilibili.com/video/av1906422263/)
 
+# 死后补充模式有BUG，请勿开启
+
 # 7.0变化
 1.性能优化，新增刷特模式<br>
 2.防跑图掉队机制<br>
