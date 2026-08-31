@@ -44,7 +44,7 @@ public void OnPluginStart()
     NCvar[CSpecial_Num_NotCul_Bot]                    = AutoExecConfig_CreateConVar("Special_Num_NotCul_Bot", "0", "[0=关|1=开]计算玩家人数时，不把人机也算进去", _, true, 0.0, true, 1.0);
 
     NCvar[CSpecial_Random_Mode]                       = AutoExecConfig_CreateConVar("Special_Random_Mode", "0", "[0=关|1=开]启用随机特感[开启后会随机Special_Default_Mode中包含的模式，仅供娱乐]", _, true, 0.0, true, 1.0);
-    NCvar[CSpecial_SpawnWay]                          = AutoExecConfig_CreateConVar("Special_SpawnWay", "0", "[0=一起刷新|1=死后补充]特感刷新方式[死后补充目前有BUG，相当于无限刷特]", _, true, 0.0, true, 1.0);
+    NCvar[CSpecial_SpawnWay]                          = AutoExecConfig_CreateConVar("Special_SpawnWay", "0", "[0=一起刷新|1=死后补充]特感刷新方式", _, true, 0.0, true, 1.0);
     NCvar[CSpecial_Default_Mode]                      = AutoExecConfig_CreateConVar("Special_Default_Mode", "7", "指定刷新模式(当随机特感关闭生效)[1=全牛子|2=全胖子|3=全口水|4=全舌头|5=全猴子|6=全猎人|7=默认][默认模式为全部特感类型都会刷新，其他为单一类型刷新]", _, true, 1.0, true, 8.0);
     NCvar[CSpecial_Spawn_Mode]                        = AutoExecConfig_CreateConVar("Special_Spawn_Mode", "1", "[0=导演|1=普通|2=噩梦|3=地狱|4=可变]特感生成方式[导演就是游戏自带的导演系统，普通是插件默认选项比较适合普通玩家，噩梦与地狱适合大佬游玩，地狱是最高难度，噩梦与地狱刷特位置会比较近]", _, true, 0.0, true, 4.0);
     NCvar[CSpecial_IsModeInNormal]                    = AutoExecConfig_CreateConVar("Special_IsModeInNormal", "1", "[1=模式1(默认)|2=模式2]在Special_Spawn_Mode的普通、噩梦、地狱模式下有效的子模式,只有1和2可选，具体说明请看插件的说明书。", _, true, 1.0, true, 2.0);
