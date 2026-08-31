@@ -104,17 +104,6 @@ IsClientInCombat       判断是否某个幸存者是否在战斗
 让每个人都能得到比较好的体验，而不是强的觉得弱爆了，弱的没有体验，中等的在摸鱼。。。
 api可以针对跑图的，落后的均无法幸免，此扩展噩梦级别以上刷特很猛，建议时间调长一些，避免被虐的体无完肤...
 
-HUD说明：
-
-若没有键接成功数据库，报错不再一直刷，只在重启服务器刷一次，可以判断是什么原因，
-如果出现[BinHooks] Unable to connect to db，
-linux系统输入
-(centos)yum install zlib.i686 
-(ubuntu)sudu apt-get install zlib.i686 或者 apt-get install zlib.i686
-如果还不行，可能数据库服务器挂了，请联系作者
-
-如果在win不行，可能数据库服务器挂了，请联系作者
-
 共有15个slot槽位，每个槽位不仅仅可以显示一行，通过换行符可以显示多行，理论上可以占满整个屏幕。
 新增了IsHudLoaded这个api，可以判断是否成功键接数据库。
 

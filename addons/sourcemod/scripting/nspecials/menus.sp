@@ -47,7 +47,7 @@ public Menu SpecialMenu(int client)
         Format(line, sizeof(line), "特感快速反应 [%s]", !GetSpecialAssault() ? "关" : "开");
         N_ClientMenu[client].N_MenuSpecialMenu.AddItem("tgfast", line);
 
-        Format(line, sizeof(line), "特感刷新方式 [%s]", !GetSpecialSpawnWay() ? "一起刷新" : "死亡补充[BUG]");
+        Format(line, sizeof(line), "特感刷新方式 [%s]", !GetSpecialSpawnWay() ? "一起刷新" : "死亡补充");
         N_ClientMenu[client].N_MenuSpecialMenu.AddItem("tgspawnway", line);
 
         Format(line, sizeof(line), "随机特感模式 [%s]", !NCvar[CSpecial_Random_Mode].BoolValue ? "关" : "开");
@@ -67,6 +67,11 @@ public Menu SpecialMenu(int client)
 
         Format(line, sizeof(line), "坦克存活时刷特 [%s]", NCvar[CSpecial_Spawn_Tank_Alive].BoolValue ? "是" : "否");
         N_ClientMenu[client].N_MenuSpecialMenu.AddItem("tgtanklive", line);
+
+        Format(line, sizeof(line), "倒地暂停刷特 [%s]", NCvar[CSpecial_PauseOnDown].BoolValue ? "是" : "否");
+        N_ClientMenu[client].N_MenuSpecialMenu.AddItem("tgpausedown", line);
+        Format(line, sizeof(line), "倒地暂停人数 [%d]", NCvar[CSpecial_DownCount].IntValue);
+        N_ClientMenu[client].N_MenuSpecialMenu.AddItem("tgdowncount", line);
 
         if (!NCvar[CSpecial_Spawn_Tank_Alive].BoolValue)
         {
@@ -316,6 +321,14 @@ public int SpecialMenuHandler(Menu menu, MenuAction action, int client, int sele
                     NCvar[CSpecial_Num_NotCul_Bot].SetBool(!NCvar[CSpecial_Num_NotCul_Bot].BoolValue);
                 if (StrEqual(items, "tgtanklive"))
                     NCvar[CSpecial_Spawn_Tank_Alive].SetBool(!NCvar[CSpecial_Spawn_Tank_Alive].BoolValue);
+                if (StrEqual(items, "tgpausedown"))
+                    NCvar[CSpecial_PauseOnDown].SetBool(!NCvar[CSpecial_PauseOnDown].BoolValue);
+                if (StrEqual(items, "tgdowncount"))
+                {
+                    N_ClientItem[client].WaitingForTgDownCount = true;
+                    PrintToChat(client, "\x05%s \x04请在聊天框输入倒地暂停人数 \x03范围[1 - 4]", NEKOTAG);
+                    PrintToChat(client, "\x05%s \x04输入 \x03!cancel \x04即可取消这次操作", NEKOTAG);
+                }
                 if (StrEqual(items, "tgtankprolive"))
                     NCvar[CSpecial_Spawn_Tank_Alive_Pro].SetBool(!NCvar[CSpecial_Spawn_Tank_Alive_Pro].BoolValue);
                 if (StrEqual(items, "tgautokick"))

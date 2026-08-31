@@ -116,6 +116,9 @@ public void OnPluginStart()
     NCvar[CSpecial_Attack_PlayerNotInCombat]          = AutoExecConfig_CreateConVar("Special_Attack_PlayerNotInCombat", "0", "[0=关|1=开]禁用/启用特感主动攻击摸鱼玩家[仅供测试]", _, true, 0.0, true, 1.0);
     NCvar[CSpecial_Attack_PlayerNotInCombat_Time]     = AutoExecConfig_CreateConVar("Special_Attack_PlayerNotInCombat_Time", "6", "检查玩家是否一直处于摸鱼状态，达到指定秒数，将让其中一只特感目标设置为该玩家，Special_Attack_PlayerNotInCombat启用后才生效[3-15秒]", _, true, 3.0, true, 15.0);
 
+    NCvar[CSpecial_PauseOnDown]                     = AutoExecConfig_CreateConVar("Special_PauseOnDown", "0", "[0=关|1=开]达到指定倒地人数后暂停刷特", _, true, 0.0, true, 1.0);
+    NCvar[CSpecial_DownCount]                       = AutoExecConfig_CreateConVar("Special_DownCount", "1", "达到多少名幸存者倒地后暂停刷特[1-4]", _, true, 1.0, true, 4.0);
+
     NCvar[CGame_Difficulty]                           = FindConVar("z_difficulty");
 
     AutoExecConfig_OnceExec();
@@ -125,6 +128,8 @@ public void OnPluginStart()
     HookEventEx("tank_killed", OnTankDeath, EventHookMode_PostNoCopy);
     HookEventEx("player_death", OnPlayerDeath);
     HookEventEx("player_spawn", OnPlayerSpawn);
+    HookEventEx("player_incapacitated", OnPlayerIncapacitated);
+    HookEventEx("revive_success", OnReviveSuccess);
     HookEventEx("mission_lost", OnRoundEnd);
     HookEventEx("round_end", OnRoundEnd);
     HookEventEx("player_team", player_team);
@@ -183,8 +188,20 @@ public void OnMapStart()
 
 public void OnMapEnd()
 {
+    g_DownedPauseActive = false;
     SetSpecialRunning(false);
     IsPlayerLeftCP = false;
+    if (g_hPlayerLeftTimer != null)
+    {
+        delete g_hPlayerLeftTimer;
+        g_hPlayerLeftTimer = null;
+    }
+    if (g_hSetMaxSpecialsTimer != null)
+    {
+        delete g_hSetMaxSpecialsTimer;
+        g_hSetMaxSpecialsTimer = null;
+    }
+    SetSpecialSpawnClient(0);
 }
 
 public void DifficultyChanged(ConVar convar, const char[] oldValue, const char[] newValue)

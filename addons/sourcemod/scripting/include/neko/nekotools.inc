@@ -1005,7 +1005,7 @@ stock int AutoExecConfig_FindValue(const char[] cvar, char[] value, int size, bo
 
 			if (StrEqual(sConvar, cvar, caseSensitive))
 			{
-				Format(value, size, "%s", sConvar);
+				Format(value, size, "%s", sValue);
 
 				fFile.Close();
 				return AUTOEXEC_FIND_SUCCESS;

@@ -257,6 +257,7 @@ void UpdateNekoAllSettings()
     UpdateSpawnArea();
     UpdateSpawnDistance();
     SetMaxSpecialsCount(true);
+    UpdateDownedPause();
     LogMessage("[NS] Update Settings!!!");
 }
 

@@ -25,6 +25,7 @@ public Action PlayerLeftStart(Handle Timer)
 	if (L4D_HasAnySurvivorLeftSafeArea())
 	{
 		IsPlayerLeftCP = true;
+		g_hPlayerLeftTimer = null;
 		CreateTimer(NCvar[CSpecial_LeftPoint_SpawnTime].FloatValue, Timer_DelaySpawnInfected);
 		InfectedTips();
 		return Plugin_Stop;
@@ -45,6 +46,7 @@ public Action Timer_ReloadMenu(Handle timer, any client)
 
 public Action Timer_SetMaxSpecialsCount(Handle timer)
 {
+	g_hSetMaxSpecialsTimer = null;
 	SetMaxSpecialsCount();
 	return Plugin_Stop;
 }

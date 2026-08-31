@@ -99,6 +99,17 @@ public Action ChatListener(int client, const char[] command, int args)
 				PrintToChat(client, "\x05%s \x04更改玩家增加数量为 \x03%i ", NEKOTAG, GetCmdArgInt(1));
 			}
 		}
+		else if (N_ClientItem[client].WaitingForTgDownCount)
+		{
+			int value = GetCmdArgInt(1);
+			if (value < 1 || value > 4)
+			{
+				PrintToChat(client, "\x05%s \x04输入的倒地暂停人数有误，请重试 \x03范围[1 - 4]", NEKOTAG);
+				return Plugin_Continue;
+			}
+			NCvar[CSpecial_DownCount].SetInt(value);
+			PrintToChat(client, "\x05%s \x04倒地暂停人数设置为 \x03%d", NEKOTAG, value);
+		}
 		else if (N_ClientItem[client].WaitingForTgCustom)
 		{
 			if (GetCmdArgInt(1) < 0 || GetCmdArgInt(1) > 32)

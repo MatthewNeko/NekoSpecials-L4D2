@@ -10,14 +10,14 @@ enum VoteAction
 	VoteAction_End,			// param1 = reason
 };
 
-enum 
+enum
 {
 	VOTE_YES = 1,
 	VOTE_NO = 2,
 };
 
 // VoteAction_End reason
-enum 
+enum
 {
 	VOTEEND_FULLVOTED = 1,	// All players have voted
 	VOTEEND_TIMEEND = 2,	// Time to vote ends
@@ -31,6 +31,20 @@ enum
 native bool L4D2NativeVote_IsAllowNewVote();
 
 /**
+ * Cancels the current vote owned by the native vote plugin.
+ *
+ * With no argument, preserves the legacy unconditional cancellation behavior.
+ * A non-zero expectedValue is an owner token and cancellation succeeds only
+ * when it matches the current vote's Value, preventing a stale owner from
+ * cancelling a newer vote created by another plugin. Zero preserves the legacy
+ * unconditional cancellation behavior, whether it is explicit or omitted.
+ *
+ * @param expectedValue      Optional owner token; zero means legacy cancellation.
+ * @return                   True if an active vote was cancelled.
+ */
+native bool L4D2NativeVote_CancelVote(any expectedValue = 0);
+
+/**
  * Called when a VoteAction is completed.
  *
  * @param vote              The vote being acted upon.
@@ -41,7 +55,7 @@ native bool L4D2NativeVote_IsAllowNewVote();
 typedef L4D2VoteHandler = function void (L4D2NativeVote vote, VoteAction action, int param1, int param2);
 
 
-methodmap L4D2NativeVote 
+methodmap L4D2NativeVote
 {
 	// Creates a new NativeVote.
 	// You should check L4D2NativeVote_IsAllowNewVote() first.
@@ -94,12 +108,12 @@ methodmap L4D2NativeVote
 		public native get();
 	}
 
-	// Broadcasts a vote to a list of clients.  
+	// Broadcasts a vote to a list of clients.
 	//
 	// @param clients		Array of clients to broadcast to.
 	// @param numClients	Number of clients in the array.
 	// @param time			Maximum time to leave vote on the screen.
-	// @return				True on success, False if in game numClients < 1 
+	// @return				True on success, False if in game numClients < 1
 	//						Or vote is invalid, Or there are other vote in progress.
 	public native bool DisplayVote(int[] clients, int numClients, int time);
 
@@ -123,20 +137,20 @@ methodmap L4D2NativeVote
 	{
 		public native get();
 	}
-	
+
 	// Set vote passed.
 	// You must manually call SetPass or SetFail in L4D2VoteHandler.
 	//
 	// @param fmt           text displayed on the vote screen after passed.
 	// @param ...           text string arguments.
-	public native void SetPass(const char[] fmt, any ...);
+	public native bool SetPass(const char[] fmt, any ...);
 
 	// Set vote Failed.
 	// You must manually call SetPass or SetFail in L4D2VoteHandler.
-	public native void SetFail();
+	public native bool SetFail();
 }
 
-public SharedPlugin __pl_l4d2_nativevote = 
+public SharedPlugin __pl_l4d2_nativevote =
 {
 	name = "l4d2_nativevote",
 	file = "l4d2_nativevote.smx",
@@ -151,6 +165,7 @@ public SharedPlugin __pl_l4d2_nativevote =
 public void __pl_l4d2_nativevote_SetNTVOptional()
 {
 	MarkNativeAsOptional("L4D2NativeVote_IsAllowNewVote");
+	MarkNativeAsOptional("L4D2NativeVote_CancelVote");
 	MarkNativeAsOptional("L4D2NativeVote.L4D2NativeVote");
 	MarkNativeAsOptional("L4D2NativeVote.SetDisplayText");
 	MarkNativeAsOptional("L4D2NativeVote.SetTitle");

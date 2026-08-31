@@ -1,5 +1,10 @@
 
 
+public void OnGameFrame()
+{
+    UpdateDownedPause();
+}
+
 public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3], float angles[3], int& weapon, int& subtype, int& cmdnum, int& tickcount, int& seed, int mouse[2])
 {
 	if (NCvar[CSpecial_PluginStatus].BoolValue && GetSpecialRunning())
@@ -29,7 +34,9 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
 		{
 			if (GetGameTime() - CheckFreeTime[client] >= 1.0)
 			{
-				if (!IsClientInCombat(client) && IsMoreSpecialsAlive())
+				if (IsClientInCombat(client) || !IsMoreSpecialsAlive())
+					CheckNotCombat[client] = 0;
+				else
 					CheckNotCombat[client]++;
 
 				if (CheckNotCombat[client] >= NCvar[CSpecial_Attack_PlayerNotInCombat_Time].IntValue)

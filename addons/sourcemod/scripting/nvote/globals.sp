@@ -74,7 +74,9 @@
 #define CSpecial_SpawnWay                          74
 #define CSpecial_Attack_PlayerNotInCombat          75
 #define CSpecial_Attack_PlayerNotInCombat_Time     76
-#define GetCvar_Max                                77
+#define CSpecial_PauseOnDown                       77
+#define CSpecial_DownCount                         78
+#define GetCvar_Max                                79
 
 #define Neko_CanSwitch                             1
 #define Neko_SwitchStatus                          2
@@ -87,7 +89,25 @@
 #define Neko_SwitchTankAlive                       9
 #define Neko_NeedResetNoPlayer                     10
 #define Neko_NeedResetTime                         11
-#define Cvar_Max                                   12
+#define Neko_SwitchNumAdd                          12
+#define Neko_SwitchPlayerAdd                       13
+#define Neko_VotePassPercent                       14
+#define Neko_VoteMinPlayers                        15
+#define Neko_TimeMin                               16
+#define Neko_TimeMax                               17
+#define Neko_NumMin                                18
+#define Neko_NumMax                                19
+#define Neko_AddMin                                20
+#define Neko_AddMax                                21
+#define Neko_PlayerNumMin                          22
+#define Neko_PlayerNumMax                          23
+#define Neko_PlayerAddMin                          24
+#define Neko_PlayerAddMax                          25
+#define Neko_SwitchPauseOnDown                      26
+#define Neko_SwitchDownCount                        27
+#define Neko_DownCountMin                           28
+#define Neko_DownCountMax                           29
+#define Cvar_Max                                   30
 
 ConVar NCvar[Cvar_Max], GCvar[GetCvar_Max];
 
@@ -98,5 +118,21 @@ int    MenuPageItem[MAXPLAYERS + 1], VoteMenuItemValue[MAXPLAYERS + 1], AdminMen
 char   VoteMenuItems[MAXPLAYERS + 1][512], WaitForVoteItems[MAXPLAYERS + 1][512], SubMenuVoteItems[MAXPLAYERS + 1][512];
 
 bool   BoolWaitForVoteItems[MAXPLAYERS + 1];
+bool   BoolWaitForAdminItems[MAXPLAYERS + 1];
+char   AdminEditItems[MAXPLAYERS + 1][64];
+char   AdminRangeItems[MAXPLAYERS + 1][32];
+
+// A vote outlives its initiator's client slot. Keep an immutable snapshot so
+// disconnect/reconnect cannot make VoteAction_End read another player's data.
+bool   VoteSnapshotActive;
+int    VoteSnapshotValue;
+int    VoteSnapshotToken;
+int    VoteSnapshotInitiatorUserId;
+int    NextVoteSnapshotToken;
+char   VoteSnapshotItem[64];
+char   VoteSnapshotSubItem[16];
+int    VoteSnapshotPassPercent;
+Handle VoteSnapshotCleanupTimer;
+Handle NoPlayerResetTimer;
 
 Menu   N_MenuVoteMenu[MAXPLAYERS + 1], N_MenuAdminMenu[MAXPLAYERS + 1];

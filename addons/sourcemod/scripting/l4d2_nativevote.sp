@@ -5,7 +5,7 @@
 #include <sdktools>
 #include <l4d2_nativevote>
 
-#define VERSION "0.4"
+#define VERSION "0.5.1"
 
 enum struct VoteData
 {
@@ -26,8 +26,12 @@ int g_iVoteController;
 PrivateForward g_hFwd;
 ConVar g_cvInitiatorAutoVoteYes;
 Handle g_hEndVoteTimer;
+Handle g_hResetVoteTimer;
+int g_iVoteGeneration;
+bool g_bVoteEndDispatched;
+bool g_bVoteResultSent;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 Native vote",
 	author = "Powerlord, fdxx",
@@ -38,7 +42,7 @@ public Plugin myinfo =
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-	if (GetEngineVersion() != Engine_Left4Dead2) 
+	if (GetEngineVersion() != Engine_Left4Dead2)
 		LogError("Plugin only supports L4D2"); // Only throw error, try to continue loading.
 
 	CreateNative("L4D2NativeVote.L4D2NativeVote", Native_CreateVote);
@@ -63,6 +67,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("L4D2NativeVote.SetPass", Native_SetPass);
 	CreateNative("L4D2NativeVote.SetFail", Native_SetFail);
 	CreateNative("L4D2NativeVote_IsAllowNewVote", Native_IsAllowNewVote);
+	CreateNative("L4D2NativeVote_CancelVote", Native_CancelVote);
 
 	RegPluginLibrary("l4d2_nativevote");
 
@@ -78,14 +83,17 @@ public void OnPluginStart()
 
 public void OnMapStart()
 {
-	delete g_hEndVoteTimer;
-	g_VoteData.bVoteInProgress = false;
+	ResetVote();
 }
 
 public void OnMapEnd()
 {
-	delete g_hEndVoteTimer;
-	g_VoteData.bVoteInProgress = false;
+	ResetVote();
+}
+
+public void OnPluginEnd()
+{
+	ResetVote();
 }
 
 // public native L4D2NativeVote CreateVote(L4D2VoteHandler handler);
@@ -163,62 +171,81 @@ any Native_DisplayVote(Handle plugin, int numParams)
 		return false;
 
 	int numClients = GetNativeCell(3);
+	int time = GetNativeCell(4);
+	if (numClients < 1 || numClients > MaxClients || time < 1)
+	{
+		ResetVote();
+		return false;
+	}
+
 	int[] buffer = new int[numClients];
 	GetNativeArray(2, buffer, numClients);
 
-	int client;
 	int[] clients = new int[numClients];
-	
+	bool seen[MAXPLAYERS + 1];
 	for (int i = 0; i < numClients; i++)
 	{
-		client = buffer[i];
-		if (client > 0 && client <= MaxClients && IsClientInGame(client))
-		{
-			clients[g_VoteData.iPlayerCount++] = client;
-			g_VoteData.bCanVote[client] = true;
-		}
+		int client = buffer[i];
+		if (client < 1 || client > MaxClients || seen[client] || !IsClientInGame(client))
+			continue;
+
+		seen[client] = true;
+		clients[g_VoteData.iPlayerCount++] = client;
+		g_VoteData.bCanVote[client] = true;
 	}
-	
+
 	if (g_VoteData.iPlayerCount < 1)
 	{
 		ResetVote();
 		return false;
 	}
-	
+
 	int initiator = g_VoteData.iInitiator;
 	char sName[128];
 	if (initiator > 0 && initiator <= MaxClients && IsClientInGame(initiator))
 	{
 		FormatEx(sName, sizeof(sName), "%N", initiator);
-		if (g_cvInitiatorAutoVoteYes.BoolValue)
-			CreateTimer(0.1, InitiatorVote_Timer, GetClientUserId(initiator));
+		if (g_cvInitiatorAutoVoteYes.BoolValue && g_VoteData.bCanVote[initiator])
+		{
+			DataPack pack = new DataPack();
+			pack.WriteCell(g_iVoteGeneration);
+			pack.WriteCell(GetClientUserId(initiator));
+			CreateTimer(0.1, InitiatorVote_Timer, pack, TIMER_DATA_HNDL_CLOSE);
+		}
 	}
 
-	BfWrite bf = UserMessageToBfWrite(StartMessage("VoteStart", clients, g_VoteData.iPlayerCount, USERMSG_RELIABLE));
-	bf.WriteByte(-1);							// team. Valve represents no team as -1
-	bf.WriteByte(initiator);					// initiator
-	bf.WriteString("#L4D_TargetID_Player");		// issue. L4D_TargetID_Player which will let you create any vote you want.
-	bf.WriteString(g_VoteData.sDisplayText);	// Vote issue text
-	bf.WriteString(sName);						// initiatorName
+	Handle hMessage = StartMessage("VoteStart", clients, g_VoteData.iPlayerCount, USERMSG_RELIABLE);
+	if (hMessage == null)
+	{
+		ResetVote();
+		return false;
+	}
+
+	BfWrite bf = UserMessageToBfWrite(hMessage);
+	bf.WriteByte(-1);                              // team. Valve represents no team as -1
+	bf.WriteByte(initiator);                       // initiator
+	bf.WriteString("#L4D_TargetID_Player");       // issue. L4D_TargetID_Player allows any vote text.
+	bf.WriteString(g_VoteData.sDisplayText);       // Vote issue text
+	bf.WriteString(sName);                         // initiatorName
 	EndMessage();
 
 	g_VoteData.bVoteStart = true;
-
-	int time = GetNativeCell(4);
-	delete g_hEndVoteTimer;
 	g_hEndVoteTimer = CreateTimer(float(time), EndVote_Timer);
 
 	UpdateVotes(VoteAction_Start, initiator);
 	return true;
 }
 
-Action InitiatorVote_Timer(Handle timer, int userid)
+Action InitiatorVote_Timer(Handle timer, DataPack pack)
 {
-	if (!g_VoteData.bVoteInProgress)
+	pack.Reset();
+	int generation = pack.ReadCell();
+	int userid = pack.ReadCell();
+	if (!g_VoteData.bVoteInProgress || !g_VoteData.bVoteStart || generation != g_iVoteGeneration)
 		return Plugin_Continue;
 
 	int client = GetClientOfUserId(userid);
-	if (client > 0 && client <= MaxClients && IsClientInGame(client))
+	if (client > 0 && client <= MaxClients && IsClientInGame(client) && g_VoteData.bCanVote[client])
 		FakeClientCommand(client, "Vote Yes");
 	return Plugin_Continue;
 }
@@ -252,33 +279,35 @@ any Native_GetPlayerCount(Handle plugin, int numParams)
 
 Action EndVote_Timer(Handle timer)
 {
-	if (g_VoteData.bVoteInProgress)
-	{
-		UpdateVotes(VoteAction_End, VOTEEND_TIMEEND);
-	}
 	g_hEndVoteTimer = null;
+	if (g_VoteData.bVoteInProgress && g_VoteData.bVoteStart)
+		UpdateVotes(VoteAction_End, VOTEEND_TIMEEND);
 	return Plugin_Continue;
 }
 
 Action vote_Listener(int client, const char[] command, int argc)
 {
-	if (g_VoteData.bVoteInProgress && g_VoteData.bCanVote[client])
+	if (client < 1 || client > MaxClients || !g_VoteData.bVoteInProgress ||
+		!g_VoteData.bVoteStart || !g_VoteData.bCanVote[client])
+		return Plugin_Continue;
+
+	char sVote[4];
+	if (GetCmdArgString(sVote, sizeof(sVote)) <= 1)
+		return Plugin_Continue;
+
+	if (strcmp(sVote, "Yes", false) == 0)
 	{
 		g_VoteData.bCanVote[client] = false;
-		char sVote[4];
-		if (GetCmdArgString(sVote, sizeof(sVote)) > 1)
-		{
-			if (strcmp(sVote, "Yes", false) == 0)
-			{
-				g_VoteData.iYesCount++;
-				UpdateVotes(VoteAction_PlayerVoted, client, VOTE_YES);
-			}
-			else if (strcmp(sVote, "No", false) == 0)
-			{
-				g_VoteData.iNoCount++;
-				UpdateVotes(VoteAction_PlayerVoted, client, VOTE_NO);
-			}
-		}
+		g_VoteData.iYesCount++;
+		UpdateVotes(VoteAction_PlayerVoted, client, VOTE_YES);
+		SendClientVoteRegistered(client, 1);
+	}
+	else if (strcmp(sVote, "No", false) == 0)
+	{
+		g_VoteData.bCanVote[client] = false;
+		g_VoteData.iNoCount++;
+		UpdateVotes(VoteAction_PlayerVoted, client, VOTE_NO);
+		SendClientVoteRegistered(client, 0);
 	}
 
 	return Plugin_Continue;
@@ -287,83 +316,149 @@ Action vote_Listener(int client, const char[] command, int argc)
 // function void (L4D2NativeVote vote, VoteAction action, int param1, int param2);
 void UpdateVotes(VoteAction action, int param1 = -1, int param2 = -1)
 {
-	if (!g_VoteData.bVoteInProgress) return;
+	if (!g_VoteData.bVoteInProgress)
+		return;
 
 	Event event = CreateEvent("vote_changed", true);
-	event.SetInt("yesVotes", g_VoteData.iYesCount);
-	event.SetInt("noVotes", g_VoteData.iNoCount);
-	event.SetInt("potentialVotes", g_VoteData.iPlayerCount);
-	event.Fire();
-
-	switch (action)
+	if (event != null)
 	{
-		case VoteAction_Start, VoteAction_PlayerVoted:
-		{
-			Call_StartForward(g_hFwd);
-			Call_PushCell(0);
-			Call_PushCell(action);
-			Call_PushCell(param1);
-			Call_PushCell(param2);
-			Call_Finish();
+		event.SetInt("yesVotes", g_VoteData.iYesCount);
+		event.SetInt("noVotes", g_VoteData.iNoCount);
+		event.SetInt("potentialVotes", g_VoteData.iPlayerCount);
+		event.Fire();
+	}
 
-			if (g_VoteData.iYesCount + g_VoteData.iNoCount >= g_VoteData.iPlayerCount)
-			{
-				for (int i; i <= MaxClients; i++)
-					g_VoteData.bCanVote[i] = false;
-					
-				UpdateVotes(VoteAction_End, VOTEEND_FULLVOTED);
-			}
-		}
-		case VoteAction_End:
+	if (action == VoteAction_End)
+	{
+		if (g_bVoteEndDispatched)
+			return;
+		g_bVoteEndDispatched = true;
+	}
+
+	if (g_hFwd != null)
+	{
+		Call_StartForward(g_hFwd);
+		Call_PushCell(0);
+		Call_PushCell(action);
+		Call_PushCell(param1);
+		Call_PushCell(param2);
+		Call_Finish();
+	}
+
+	if (action == VoteAction_Start || action == VoteAction_PlayerVoted)
+	{
+		if (!g_bVoteResultSent && g_VoteData.iPlayerCount > 0 &&
+			g_VoteData.iYesCount + g_VoteData.iNoCount >= g_VoteData.iPlayerCount)
 		{
-			Call_StartForward(g_hFwd);
-			Call_PushCell(0);
-			Call_PushCell(action);
-			Call_PushCell(param1);
-			Call_PushCell(param2);
-			Call_Finish();
+			for (int i = 1; i <= MaxClients; i++)
+				g_VoteData.bCanVote[i] = false;
+			UpdateVotes(VoteAction_End, VOTEEND_FULLVOTED);
 		}
+	}
+	else if (action == VoteAction_End && g_VoteData.bVoteInProgress && !g_bVoteResultSent)
+	{
+		// A handler must explicitly call SetPass/SetFail. Never leave the engine's
+		// vote controller occupied when a plugin forgets to submit a result.
+		FinishVoteFail();
 	}
 }
 
 int Native_SetPass(Handle plugin, int numParams)
 {
+	if (!g_VoteData.bVoteInProgress || !g_VoteData.bVoteStart || g_bVoteResultSent)
+		return false;
+
 	char sMsg[64];
 	FormatNativeString(0, 2, 3, sizeof(sMsg), _, sMsg);
+	bool sent = SendVotePassMessage(sMsg);
 
-	BfWrite bf = UserMessageToBfWrite(StartMessageAll("VotePass", USERMSG_RELIABLE));
-	bf.WriteByte(-1);
-	bf.WriteString("#L4D_TargetID_Player");
-	bf.WriteString(sMsg);
-	EndMessage();
-	CreateTimer(1.0, ResetVote_Timer);
-	return 0;
+	// Even when the usermessage cannot be sent, release the vote after the
+	// result window. The caller can use the false return value to roll back
+	// side effects, while the controller cannot remain permanently occupied.
+	g_bVoteResultSent = true;
+	ScheduleVoteReset();
+	return sent;
 }
 
 int Native_SetFail(Handle plugin, int numParams)
 {
-	BfWrite bf = UserMessageToBfWrite(StartMessageAll("VoteFail", USERMSG_RELIABLE));
+	if (!g_VoteData.bVoteInProgress || !g_VoteData.bVoteStart || g_bVoteResultSent)
+		return false;
+	return FinishVoteFail();
+}
+
+bool SendVotePassMessage(const char[] message)
+{
+	Handle hMessage = StartMessageAll("VotePass", USERMSG_RELIABLE);
+	if (hMessage == null)
+		return false;
+
+	BfWrite bf = UserMessageToBfWrite(hMessage);
+	bf.WriteByte(-1);
+	bf.WriteString("#L4D_TargetID_Player");
+	bf.WriteString(message);
+	EndMessage();
+	return true;
+}
+
+bool SendVoteFailMessage()
+{
+	Handle hMessage = StartMessageAll("VoteFail", USERMSG_RELIABLE);
+	if (hMessage == null)
+		return false;
+
+	BfWrite bf = UserMessageToBfWrite(hMessage);
 	bf.WriteByte(-1);
 	EndMessage();
-	CreateTimer(1.0, ResetVote_Timer);
-	return 0;
+	return true;
+}
+
+bool FinishVoteFail()
+{
+	if (!g_VoteData.bVoteInProgress || g_bVoteResultSent)
+		return false;
+
+	bool sent = SendVoteFailMessage();
+	// Always release state after attempting the result message. A failed
+	// usermessage must not leave the native vote controller locked forever.
+	g_bVoteResultSent = true;
+	ScheduleVoteReset();
+	return sent;
+}
+
+void ScheduleVoteReset()
+{
+	delete g_hResetVoteTimer;
+	g_hResetVoteTimer = CreateTimer(1.0, ResetVote_Timer, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 Action ResetVote_Timer(Handle timer)
 {
+	g_hResetVoteTimer = null;
 	ResetVote();
 	return Plugin_Continue;
 }
 
 void ResetVote()
 {
+	bool hadVote = g_VoteData.bVoteInProgress || g_VoteData.bVoteStart;
 	g_VoteData.bVoteInProgress = false;
 	g_VoteData.bVoteStart = false;
+	g_bVoteEndDispatched = false;
+	g_bVoteResultSent = false;
+	g_iVoteGeneration++;
 
 	delete g_hEndVoteTimer;
+	g_hEndVoteTimer = null;
+	if (g_hResetVoteTimer != null)
+	{
+		delete g_hResetVoteTimer;
+		g_hResetVoteTimer = null;
+	}
 	delete g_hFwd;
+	g_hFwd = null;
 
-	if (CheckVoteController())
+	if (hadVote && CheckVoteController())
 		SetVoteEntityStatus(-1);
 
 	g_VoteData.sDisplayText[0] = '\0';
@@ -374,8 +469,27 @@ void ResetVote()
 	g_VoteData.iNoCount = 0;
 	g_VoteData.iPlayerCount = 0;
 
-	for (int i; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 		g_VoteData.bCanVote[i] = false;
+}
+
+any Native_CancelVote(Handle plugin, int numParams)
+{
+	if (!g_VoteData.bVoteInProgress)
+		return false;
+
+	any expectedValue = numParams >= 1 ? GetNativeCell(1) : 0;
+	if (expectedValue != 0 && expectedValue != g_VoteData.Value)
+		return false;
+
+	if (!g_bVoteResultSent)
+	{
+		// Cancellation is administrative cleanup. If the engine cannot display the
+		// failure message, still release our controller and callback state.
+		SendVoteFailMessage();
+	}
+	ResetVote();
+	return true;
 }
 
 any Native_IsAllowNewVote(Handle plugin, int numParams)
@@ -394,18 +508,33 @@ bool IsAllowNewVote()
 
 bool CheckVoteController()
 {
-	g_iVoteController = FindEntityByClassname(MaxClients+1, "vote_controller");
-	return g_iVoteController != -1;
+	g_iVoteController = FindEntityByClassname(MaxClients + 1, "vote_controller");
+	return g_iVoteController > MaxClients && IsValidEntity(g_iVoteController);
 }
 
 int GetVoteEntityStatus()
 {
+	if (!CheckVoteController())
+		return -1;
 	return GetEntProp(g_iVoteController, Prop_Send, "m_activeIssueIndex");
 }
 
 void SetVoteEntityStatus(int value)
 {
-	SetEntProp(g_iVoteController, Prop_Send, "m_activeIssueIndex", value);
+	if (CheckVoteController())
+		SetEntProp(g_iVoteController, Prop_Send, "m_activeIssueIndex", value);
 }
 
+void SendClientVoteRegistered(int client, int state)
+{
+	if (client < 1 || client > MaxClients || !IsClientInGame(client))
+		return;
 
+	Handle hMessage = StartMessageOne("VoteRegistered", client, USERMSG_RELIABLE);
+	if (hMessage == null)
+		return;
+
+	BfWrite bf = UserMessageToBfWrite(hMessage);
+	bf.WriteByte(state);
+	EndMessage();
+}

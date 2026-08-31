@@ -15,7 +15,6 @@ Specials plugin that can be customized in real time!<br>
 [stars-shield]: https://img.shields.io/github/stars/himenekocn/NekoSpecials-L4D2.svg?style=flat-square
 [stars-url]: https://github.com/himenekocn/NekoSpecials-L4D2/stargazers
 
-官网[点我跳转](https://himeneko.cn/nekospecials)<br>
 插件安装教程:<br>[[Neko多特插件 安装和详细介绍 7.0版本来袭 求生之路]](https://www.bilibili.com/video/av1906422263/)
 
 # 死后补充模式有BUG，请勿开启
@@ -43,28 +42,16 @@ Specials plugin that can be customized in real time!<br>
 # 使用注意
 请看完本页说明，不看完的都是🐖<br>
 <hr>
-安装前请把6.0版本的删除干净再安装，否则无法加载插件<br>
-安装前请把6.0版本的删除干净再安装，否则无法加载插件<br>
-安装前请把6.0版本的删除干净再安装，否则无法加载插件<br>
-重要的事情说三遍
+安装前请把包括7.13版本以下的东西删除干净再安装，否则无法加载插件<br>
+安装前请把包括7.13版本以下的东西删除干净再安装，否则无法加载插件<br>
+安装前请把包括7.13版本以下的东西删除干净再安装，否则无法加载插件<br>
+重要的事情说三遍<br>
+由于拓展改了文件名，请你务必检查BinHooks拓展是否有重复<br>
 <hr>
 如果你是直接下载仓库内最新版本使用，请记得在出现错误或不可用时提交日志，QQ:846490391
 
-# 安装前系统方面的准备
-如果出现[BinHooks] Unable to connect to db<br>
-linux系统输入<br>
-Centos
-```
-yum install zlib.i686
-```
-Ubuntu Debian
-```
-sudo apt-get install lib32z1-dev
-```
-其它系统请查询相应库
-
 # 插件安装
-1.安装Sourcemod插件平台到1.12+最新版本<br>
+1.安装Sourcemod插件平台到1.11+最新版本<br>
 2.安装[left4dhooks](https://forums.alliedmods.net/showthread.php?p=2684862)最新版本<br>
 3.(可选)投票功能已自带，跳过此步，如不需要请自行移除<br>
 4.下载本插件，将插件拖到服务器的left4dead2文件夹中覆盖<br>
@@ -82,8 +69,9 @@ HUD内容&服名内容的更改：服务器目录/left4dead2/addons/sourcemod/da
 # 注意：插件不生效请查看错误日志输入，日志在addons/sourcemod/logs里面，error开头就是
 
 # 插件推荐平台
-[Sourcemod-1.11+](https://www.sourcemod.net/downloads.php?branch=stable)<br>
-[Sourcemod-1.12+](https://www.sourcemod.net/downloads.php?branch=dev)<br>
+[Sourcemod-1.11+](https://www.sourcemod.net/downloads.php?branch=1.11-dev)<br>
+[Sourcemod-1.12+](https://www.sourcemod.net/downloads.php?branch=1.12-dev)<br>
+1.13待测试<br>
 保持最新插件平台就是啦！
 
 # 插件模块介绍
@@ -159,20 +147,13 @@ HUD内容&服名内容的更改：服务器目录/left4dead2/addons/sourcemod/da
 优化了算法!<br>
 
 # 更新日志
-7.12NS 更新日志 2024/11/19 14:00<br>
-修复拓展带来的HUDBUG问题<br>
-<br>
-7.11NS 更新日志 2024/07/20 14:10<br>
-修复投票的一个小错误<br>
-<br>
-7.10NS 更新日志 2024/07/19 20:40<br>
-切换投票的支持插件为FDXX的<br>
-修复HUD不会移除问题，修复一个HUD显示错误问题<br>
-修复一些菜单选项更改失败问题<br>
-<br>
-7.01NS 更新日志 2024/07/17 17:00<br>
-添加了一些功能<br>
-拓展性能优化
+7.15NS 更新日志 2026/8/31 18:00<br>
+1.性能深度优化，刷特分批刷优化减少Choke<br>
+2.修复死后补充的BUG问题<br>
+3.增加更多投票控制选项<br>
+4.增加多少玩家倒地后不刷特功能<br>
+5.修复防跑图和掉队可能不生效问题<br>
+6.在概率平衡时，减少了6特以下会出现多个重复特感问题
 
 # 使用规范
 使用本插件时请遵守顾问的使用规范，勿将本插件用作商用(RPG)，有BUG问题等请联系作者：846490391

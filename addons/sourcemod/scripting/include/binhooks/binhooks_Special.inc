@@ -237,12 +237,12 @@ native void SetSpecialSpawnArea(ZombieType type, int num);
 native int GetSpecialSpawnClient();
 
 /**
- * Sets Spawn rely of Client of the Special.
+ * Sets the survivor target for the next spawn batch. Pass 0 to clear it.
  * only mode = 4 is valid.
  *
- * @param num			rely of Client.
+ * @param client		Survivor client index, or 0 to clear the override.
  * @no return
- * @error				InValid Client.
+ * @error				Invalid survivor client.
  */
 native void SetSpecialSpawnClient(int client);
 

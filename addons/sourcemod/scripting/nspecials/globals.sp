@@ -76,7 +76,9 @@
 #define CSpecial_SpawnWay                          74
 #define CSpecial_Attack_PlayerNotInCombat          75
 #define CSpecial_Attack_PlayerNotInCombat_Time     76
-#define Cvar_Max                                   77
+#define CSpecial_PauseOnDown                       77
+#define CSpecial_DownCount                         78
+#define Cvar_Max                                   79
 
 ConVar NCvar[Cvar_Max];
 
@@ -102,6 +104,7 @@ enum struct ClientItem
     bool WaitingForTgSlowPDis;
     bool WaitingForTgCheckBliedTime;
     bool WaitingForTgCheckNotInCombat;
+    bool WaitingForTgDownCount;
 
     char WaitingForTgCustomItem[80];
     char WaitingForTgTimeType[80];
@@ -111,7 +114,7 @@ enum struct ClientItem
     char WaitingForTgCustomMaxDisItem[80];
 
     bool InWait(){
-        if (this.WaitingForTgtime || this.WaitingForTgnum || this.WaitingForTgadd || this.WaitingForPnum || this.WaitingForPadd || this.WaitingForTgCustom || this.WaitingForTgCustomWeight || this.WaitingForTgCustomDirChance || this.WaitingForTgCustomMaxDis || this.WaitingForTgCustomMinDis || this.WaitingForTgCustomMaxDisNor || this.WaitingForTgCustomMinDisNor || this.WaitingForTgFastPDis || this.WaitingForTgSlowPDis || this.WaitingForTgCheckBliedTime || this.WaitingForTgCheckNotInCombat) return true;
+        if (this.WaitingForTgtime || this.WaitingForTgnum || this.WaitingForTgadd || this.WaitingForPnum || this.WaitingForPadd || this.WaitingForTgCustom || this.WaitingForTgCustomWeight || this.WaitingForTgCustomDirChance || this.WaitingForTgCustomMaxDis || this.WaitingForTgCustomMinDis || this.WaitingForTgCustomMaxDisNor || this.WaitingForTgCustomMinDisNor || this.WaitingForTgFastPDis || this.WaitingForTgSlowPDis || this.WaitingForTgCheckBliedTime || this.WaitingForTgCheckNotInCombat || this.WaitingForTgDownCount) return true;
         return false; }
 
 void Reset()
@@ -132,6 +135,7 @@ void Reset()
     this.WaitingForTgSlowPDis            = false;
     this.WaitingForTgCheckBliedTime      = false;
     this.WaitingForTgCheckNotInCombat    = false;
+    this.WaitingForTgDownCount            = false;
     this.WaitingForTgCustomItem          = NULL_STRING;
     this.WaitingForTgTimeType            = NULL_STRING;
     this.WaitingForTgCustomWeightItem    = NULL_STRING;
@@ -169,6 +173,9 @@ enum struct ClientMenu
 ClientMenu    N_ClientMenu[MAXPLAYERS + 1];
 
 bool          IsPlayerLeftCP;
+bool          g_DownedPauseActive;
+Handle        g_hPlayerLeftTimer;
+Handle        g_hSetMaxSpecialsTimer;
 
 GlobalForward N_Forward_OnSetSpecialsNum, N_Forward_OnSetSpecialsTime, N_Forward_OnStartFirstSpawn;
 

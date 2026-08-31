@@ -53,6 +53,8 @@ public void OnPluginStart()
 	HookEventEx("finale_win", Event_Round_End);
 	HookEventEx("mission_lost", Event_Round_End);
 	HookEventEx("map_transition", Event_Round_End);
+	HookEventEx("player_incapacitated", Event_PlayerIncapPre, EventHookMode_Pre);
+	//HookEventEx("player_death", Event_PlayerDeathPre, EventHookMode_Pre);
 	HookEventEx("player_death", Event_PlayerDeath);
 	HookEventEx("infected_death", Event_infectedDeath);
 	HookEventEx("player_hurt", Event_PlayerHurt, EventHookMode_Pre);
@@ -67,6 +69,22 @@ public void OnPluginStart()
 	RegAdminCmd("sm_reloadhudconfig", ReloadHUDConfig, ADMFLAG_ROOT, "重载HUD配置文件");
 	RegAdminCmd("sm_updatehudconfig", UpdateHUDConfig, ADMFLAG_ROOT, "写入HUD配置文件");
 	RegAdminCmd("sm_resethudconfig", ReSetHUDConfig, ADMFLAG_ROOT, "重置HUD配置文件");
+}
+
+public void OnClientPutInServer(int client)
+{
+	/*if(IsValidClient(client))
+	{
+		SDKHook(client, SDKHook_OnTakeDamagePost, OnTakeDamage);
+	}*/
+}
+
+public void OnClientDisconnect(int client)
+{
+	/*if (0 < client <= MaxClients)
+	{
+		SDKUnhook(client, SDKHook_OnTakeDamagePost, OnTakeDamage);
+	}*/
 }
 
 #include "nhud/native.sp"

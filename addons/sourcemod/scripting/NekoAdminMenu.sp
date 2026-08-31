@@ -9,7 +9,7 @@
 #define SPECIALS_AVAILABLE()   (GetFeatureStatus(FeatureType_Native, "NekoSpecials_GetSpecialsNum") == FeatureStatus_Available)
 #define NKILLHUD_AVAILABLE()   (GetFeatureStatus(FeatureType_Native, "NekoKillHud_GetStatus") == FeatureStatus_Available)
 #define VOTEMENU_AVAILABLE()   (GetFeatureStatus(FeatureType_Native, "NekoVote_VoteStatus") == FeatureStatus_Available)
-#define SERVERNAME_AVAILABLE() (GetFeatureStatus(FeatureType_Native, "NekoServerName_ChangeCustomTest") == FeatureStatus_Available)
+#define SERVERNAME_AVAILABLE() (GetFeatureStatus(FeatureType_Native, "NekoServerName_PlHandle") == FeatureStatus_Available)
 
 TopMenu		  top_menu = null;
 TopMenuObject obj_dmcommands, hud_menu, specials_menu, voteadmin_menu, updateservername_option;
@@ -44,6 +44,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	MarkNativeAsOptional("NekoKillHud_GetStatus");
 	MarkNativeAsOptional("NekoKillHud_GetStyle");
 	MarkNativeAsOptional("NekoVote_VoteStatus");
+	MarkNativeAsOptional("NekoServerName_PlHandle");
 
 	return APLRes_Success;
 }
