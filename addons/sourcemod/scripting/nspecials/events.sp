@@ -87,6 +87,9 @@ public Action OnRoundEnd(Event hEvent, const char[] sName, bool bDontBroadcast)
 
 public Action OnPlayerStuck(int client)
 {
+    if(!NCvar[CSpecial_PluginStatus].BoolValue)
+        return Plugin_Continue;
+
     if (IsValidClient(client) && IsPlayerAlive(client) && GetClientTeam(client) == 3 && IsFakeClient(client))
     {
         if (IsPlayerTank(client) && !NCvar[CSpecial_AutoKill_StuckTank].BoolValue)
@@ -243,6 +246,9 @@ public Action OnReviveSuccess(Event event, const char[] name, bool dontBroadcast
 
 public Action OnPlayerDeath(Event hEvent, const char[] sName, bool bDontBroadcast)
 {
+    if(!NCvar[CSpecial_PluginStatus].BoolValue)
+        return Plugin_Continue;
+
     int client = GetClientOfUserId(hEvent.GetInt("userid"));
     if (IsValidClient(client) && IsFakeClient(client) && GetClientTeam(client) == 3)
         RequestFrame(Timer_KickBot, GetClientUserId(client));
