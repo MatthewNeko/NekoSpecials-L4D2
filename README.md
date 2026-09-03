@@ -49,6 +49,9 @@ Specials plugin that can be customized in real time!<br>
 <hr>
 如果你是直接下载仓库内最新版本使用，请记得在出现错误或不可用时提交日志，QQ:846490391
 
+# 遇到拓展因为 libstdc++.so.6 不加载问题
+将服务器目录/bin/libstdc++.so.6 改个名字 libstdc++.so.6s 重启服务器即可
+
 # 插件安装
 1.安装Sourcemod插件平台到1.11+最新版本<br>
 2.安装[left4dhooks](https://forums.alliedmods.net/showthread.php?p=2684862)最新版本<br>
