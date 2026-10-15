@@ -51,6 +51,14 @@ Specials plugin that can be customized in real time!<br>
 
 # 遇到拓展因为 libstdc++.so.6 不加载问题
 将服务器目录/bin/libstdc++.so.6 改个名字 libstdc++.so.6s 重启服务器即可
+如果系统缺少时
+## Debian/Ubuntu
+sudo apt-get update
+sudo apt-get install libstdc++6 g++ gcc-multilib
+## Centos
+sudo yum update libstdc++
+### 或
+sudo yum install gcc gcc-c++
 
 # 插件安装
 1.安装Sourcemod插件平台到1.11+最新版本<br>
